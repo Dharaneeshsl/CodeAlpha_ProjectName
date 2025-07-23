@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Translation Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6fb;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 480px;
+            margin: 60px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 32px 28px 28px 28px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 28px;
+            color: #2d3a4b;
+        }
+        label {
+            font-weight: 500;
+            margin-top: 12px;
+            color: #2d3a4b;
+        }
+        select, textarea, input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            margin-bottom: 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: #f9fafb;
+            transition: border 0.2s;
+        }
+        select:focus, textarea:focus, input:focus {
+            border: 1.5px solid #4f8cff;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #4f8cff 0%, #6f6cff 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #6f6cff 0%, #4f8cff 100%);
+        }
+        #result {
+            margin-top: 24px;
+            padding: 16px;
+            background: #eaf1fb;
+            border-radius: 6px;
+            min-height: 32px;
+            color: #2d3a4b;
+            font-size: 1.08rem;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Language Translation Tool</h1>
+        <label for="source">Source Language:</label>
+        <select id="source">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="hi">Hindi</option>
+            <option value="zh">Chinese</option>
+            <option value="ar">Arabic</option>
+            <option value="ru">Russian</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+        </select>
+
+        <label for="target">Target Language:</label>
+        <select id="target">
+            <option value="es">Spanish</option>
+            <option value="en">English</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="hi">Hindi</option>
+            <option value="zh">Chinese</option>
+            <option value="ar">Arabic</option>
+            <option value="ru">Russian</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+        </select>
+
+        <label for="text">Text to Translate:</label>
+        <textarea id="text" rows="4" placeholder="Enter text here..."></textarea>
+
+        <button id="translateBtn">Translate</button>
+
+        <div id="result"></div>
+    </div>
+    <script>
+        async function translate() {
+            const q = document.getElementById('text').value;
+            const source = document.getElementById('source').value;
+            const target = document.getElementById('target').value;
+            const resultDiv = document.getElementById('result');
+            if (!q.trim()) {
+                resultDiv.innerText = 'Please enter text to translate.';
+                return;
+            }
+            resultDiv.innerText = 'Translating...';
+            try {
+                // Unofficial Google Translate endpoint
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(q)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data && data[0] && data[0][0] && data[0][0][0]) {
+                    resultDiv.innerText = data[0][0][0];
+                } else {
+                    resultDiv.innerText = 'Translation failed.';
+                }
+            } catch (e) {
+                resultDiv.innerText = 'Request failed.';
+            }
+        }
+        document.getElementById('translateBtn').addEventListener('click', translate);
+    </script>
+</body>
+</html> 
