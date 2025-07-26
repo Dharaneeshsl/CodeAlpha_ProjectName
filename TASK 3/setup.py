@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-"""
-Setup script for AI Music Generation Chatbot
-"""
 
 import subprocess
 import sys
 import os
 
 def install_requirements():
-    """Install required Python packages"""
     print("Installing required packages...")
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
@@ -20,7 +16,6 @@ def install_requirements():
     return True
 
 def check_model_files():
-    """Check if model files exist"""
     model_files = ['music_model.h5', 'notes.pkl']
     missing_files = []
     
@@ -41,11 +36,9 @@ def main():
     print("🎵 AI Music Generation Chatbot Setup")
     print("=" * 45)
     
-    # Install dependencies
     if not install_requirements():
         return
     
-    # Check model files
     check_model_files()
     
     print("\n📋 Setup Complete!")

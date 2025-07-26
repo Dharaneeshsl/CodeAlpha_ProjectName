@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-Setup script for Object Detection and Tracking System
-TASK 4: Automated setup and dependency installation
-"""
 
 import subprocess
 import sys
@@ -11,7 +7,6 @@ import urllib.request
 import zipfile
 
 def install_requirements():
-    """Install required Python packages"""
     print("Installing required packages...")
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
@@ -23,7 +18,6 @@ def install_requirements():
         return False
 
 def download_yolo_model():
-    """Download YOLO model files if not present"""
     model_files = ['yolov4.cfg', 'yolov4.weights', 'coco.names']
     
     print("Checking YOLO model files...")
@@ -40,7 +34,6 @@ def download_yolo_model():
     return True
 
 def check_opencv():
-    """Check if OpenCV is properly installed"""
     try:
         import cv2
         print(f"✅ OpenCV version: {cv2.__version__}")
@@ -53,15 +46,12 @@ def main():
     print("🎯 Object Detection and Tracking System Setup")
     print("=" * 50)
     
-    # Install dependencies
     if not install_requirements():
         return
     
-    # Check OpenCV
     if not check_opencv():
         return
     
-    # Check YOLO model
     download_yolo_model()
     
     print("\n📋 Setup Complete!")

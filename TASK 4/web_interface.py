@@ -85,12 +85,10 @@ def process_frames():
         cv2.putText(frame, timestamp, (10, frame.shape[0] - 10), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         
-        # Update output frame
         with lock:
             output_frame = frame.copy()
         
-        # Control frame rate
-        time.sleep(0.03)  # ~30 FPS
+        time.sleep(0.03)
 
 def generate_frames():
     """Generate video frames for streaming"""
@@ -101,12 +99,10 @@ def generate_frames():
             if output_frame is None:
                 continue
             
-            # Encode frame
             (flag, encoded_image) = cv2.imencode(".jpg", output_frame)
             if not flag:
                 continue
         
-        # Yield frame
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + encoded_image.tobytes() + b'\r\n')
 
@@ -132,17 +128,14 @@ def start_detection():
         confidence = data.get('confidence', 0.5)
         nms = data.get('nms', 0.4)
         
-        # Initialize camera
         if not initialize_camera(source):
             return jsonify({'error': 'Failed to initialize camera'}), 500
         
-        # Initialize tracker
         tracker = ObjectTracker(
             confidence_threshold=confidence,
             nms_threshold=nms
         )
         
-        # Start processing
         is_processing = True
         processing_thread = threading.Thread(target=process_frames)
         processing_thread.daemon = True

@@ -2,7 +2,6 @@ import os
 import pickle
 from music21 import converter, instrument, note, chord
 
-# Look for MIDI files in both midi_data and TASK 3 root
 midi_folders = ['TASK 3/midi_data', 'TASK 3']
 notes = []
 
@@ -20,7 +19,7 @@ for file_path in midi_files:
     try:
         midi = converter.parse(file_path)
         parts = instrument.partitionByInstrument(midi)
-        if parts:  # file has instrument parts
+        if parts:
             notes_to_parse = parts.parts[0].recurse()
         else:
             notes_to_parse = midi.flat.notes
@@ -32,7 +31,6 @@ for file_path in midi_files:
     except Exception as e:
         print(f"Error processing {file_path}: {e}")
 
-# Save notes for model training
 with open('TASK 3/notes.pkl', 'wb') as f:
     pickle.dump(notes, f)
 print(f"Extracted {len(notes)} notes/chords. Saved to TASK 3/notes.pkl") 

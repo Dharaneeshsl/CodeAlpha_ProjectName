@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-"""
-Setup script for Language Translation Tool
-"""
 
 import subprocess
 import sys
 import os
 
 def install_requirements():
-    """Install required Python packages"""
     print("Installing required packages...")
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
@@ -23,7 +19,6 @@ def main():
     print("🚀 Language Translation Tool Setup")
     print("=" * 40)
     
-    # Install dependencies
     if not install_requirements():
         return
     

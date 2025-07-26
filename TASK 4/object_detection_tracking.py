@@ -87,14 +87,11 @@ class ObjectTracker:
         
         height, width = frame.shape[:2]
         
-        # Create blob from image
         blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
         self.net.setInput(blob)
         
-        # Forward pass
         outputs = self.net.forward(self.get_output_layers())
         
-        # Process detections
         boxes = []
         confidences = []
         class_ids = []
@@ -118,7 +115,6 @@ class ObjectTracker:
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
         
-        # Apply non-maximum suppression
         indices = cv2.dnn.NMSBoxes(boxes, confidences, self.confidence_threshold, self.nms_threshold)
         
         detections = []
@@ -159,7 +155,6 @@ class ObjectTracker:
             center_x = bbox[0] + bbox[2] // 2
             center_y = bbox[1] + bbox[3] // 2
             
-            # Find closest existing track
             min_distance = float('inf')
             best_track_id = None
             
@@ -168,26 +163,23 @@ class ObjectTracker:
                     track_center = track_info['center']
                     distance = np.sqrt((center_x - track_center[0])**2 + (center_y - track_center[1])**2)
                     
-                    if distance < min_distance and distance < 100:  # Maximum distance threshold
+                    if distance < min_distance and distance < 100:
                         min_distance = distance
                         best_track_id = track_id
             
             if best_track_id is not None:
-                # Update existing track
                 self.trackers[best_track_id]['center'] = (center_x, center_y)
                 self.trackers[best_track_id]['bbox'] = bbox
                 self.trackers[best_track_id]['class_name'] = detection['class_name']
                 self.trackers[best_track_id]['confidence'] = detection['confidence']
                 self.trackers[best_track_id]['last_seen'] = time.time()
                 
-                # Update track history
                 if best_track_id not in self.track_history:
                     self.track_history[best_track_id] = deque(maxlen=self.max_history)
                 self.track_history[best_track_id].append((center_x, center_y))
                 
                 current_tracks[best_track_id] = self.trackers[best_track_id]
             else:
-                # Create new track
                 self.track_id += 1
                 self.trackers[self.track_id] = {
                     'center': (center_x, center_y),
@@ -203,11 +195,10 @@ class ObjectTracker:
                 
                 current_tracks[self.track_id] = self.trackers[self.track_id]
         
-        # Mark inactive tracks
         current_time = time.time()
         for track_id in self.trackers:
             if track_id not in current_tracks:
-                if current_time - self.trackers[track_id]['last_seen'] > 2.0:  # 2 seconds timeout
+                if current_time - self.trackers[track_id]['last_seen'] > 2.0:
                     self.trackers[track_id]['active'] = False
         
         return current_tracks
@@ -223,26 +214,20 @@ class ObjectTracker:
             class_name = track_info['class_name']
             confidence = track_info['confidence']
             
-            # Get color for this class
-            class_id = 0  # Default to person
+            class_id = 0
             if class_name in self.class_names:
                 class_id = self.class_names.index(class_name)
             color = self.colors[class_id]
             
-            # Draw bounding box
             cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
             
-            # Draw label with tracking ID
             label = f"{class_name} #{track_id} ({confidence:.2f})"
             label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)[0]
             
-            # Draw label background
             cv2.rectangle(frame, (x, y - label_size[1] - 10), (x + label_size[0], y), color, -1)
             
-            # Draw label text
             cv2.putText(frame, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
             
-            # Draw tracking trail
             if track_id in self.track_history and len(self.track_history[track_id]) > 1:
                 points = list(self.track_history[track_id])
                 for i in range(1, len(points)):
@@ -252,7 +237,6 @@ class ObjectTracker:
     
     def process_video(self, source=0, output_path=None):
         """Process video stream with object detection and tracking"""
-        # Open video source
         if isinstance(source, str):
             cap = cv2.VideoCapture(source)
         else:
@@ -262,14 +246,12 @@ class ObjectTracker:
             logger.error("Error opening video source")
             return
         
-        # Get video properties
         fps = int(cap.get(cv2.CAP_PROP_FPS))
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         
         logger.info(f"Video source opened: {width}x{height} @ {fps}fps")
         
-        # Setup video writer if output path is specified
         writer = None
         if output_path:
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -286,35 +268,27 @@ class ObjectTracker:
                 
                 frame_count += 1
                 
-                # Detect objects
                 detections = self.detect_objects(frame)
                 
-                # Update tracking
                 tracks = self.update_tracking(detections)
                 
-                # Draw results
                 frame = self.draw_detections(frame, tracks)
                 
-                # Add FPS and object count
                 elapsed_time = time.time() - start_time
                 current_fps = frame_count / elapsed_time if elapsed_time > 0 else 0
                 
                 info_text = f"FPS: {current_fps:.1f} | Objects: {len(tracks)}"
                 cv2.putText(frame, info_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 
-                # Write frame if output is specified
                 if writer:
                     writer.write(frame)
                 
-                # Display frame
                 cv2.imshow('Object Detection and Tracking', frame)
                 
-                # Handle key presses
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('q'):
                     break
                 elif key == ord('s'):
-                    # Save current frame
                     timestamp = int(time.time())
                     cv2.imwrite(f"frame_{timestamp}.jpg", frame)
                     logger.info(f"Frame saved as frame_{timestamp}.jpg")
@@ -323,7 +297,6 @@ class ObjectTracker:
             logger.info("Processing interrupted by user")
         
         finally:
-            # Cleanup
             cap.release()
             if writer:
                 writer.release()
@@ -347,7 +320,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Convert source to int if it's a number (webcam)
     try:
         source = int(args.source)
     except ValueError:
@@ -365,14 +337,12 @@ def main():
     print("- Press 's' to save current frame")
     print("=" * 50)
     
-    # Initialize tracker
     tracker = ObjectTracker(
         model_path=args.model,
         confidence_threshold=args.confidence,
         nms_threshold=args.nms
     )
     
-    # Process video
     tracker.process_video(source=source, output_path=args.output)
 
 if __name__ == "__main__":
