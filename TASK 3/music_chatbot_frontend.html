@@ -2,168 +2,568 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Music Generation Chatbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Music Generation Chatbot</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background: #181c24;
-            font-family: 'Montserrat', Arial, sans-serif;
+        * {
             margin: 0;
-            min-height: 100vh;
+            padding: 0;
+            box-sizing: border-box;
         }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Montserrat', Arial, sans-serif;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
         .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px 0;
+        }
+
+        .header .icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .header .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fff, #a8edea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+
+        .chat-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .message {
+            margin: 15px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #23283a;
-            padding: 24px 0 16px 0;
-            box-shadow: 0 2px 8px #0002;
+            font-weight: bold;
+            font-size: 1.2rem;
+            flex-shrink: 0;
         }
-        .header .icon {
-            font-size: 2.2rem;
-            margin-right: 12px;
+
+        .user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .header .title {
-            color: #fff;
-            font-size: 1.7rem;
-            font-weight: 700;
-            letter-spacing: 1px;
+
+        .bot .message-avatar {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
-        #chatBox {
-            width: 420px;
-            margin: 32px auto 0 auto;
-            background: #23283a;
-            border-radius: 18px;
-            box-shadow: 0 4px 24px #0004;
-            padding: 24px 18px 18px 18px;
-            min-height: 420px;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        .msg {
-            margin: 12px 0;
-            display: flex;
-        }
-        .user {
-            justify-content: flex-end;
-        }
-        .bot {
-            justify-content: flex-start;
-        }
-        .bubble {
-            padding: 12px 18px;
-            border-radius: 18px;
-            max-width: 75%;
-            font-size: 1.08rem;
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            word-wrap: break-word;
             line-height: 1.5;
-            box-shadow: 0 2px 8px #0002;
+            position: relative;
         }
-        .user .bubble {
-            background: linear-gradient(90deg, #4f8cff 60%, #6a5cff 100%);
-            color: #fff;
+
+        .user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
         }
-        .bot .bubble {
-            background: #2e344d;
-            color: #e0e6f7;
+
+        .bot .message-bubble {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-bottom-left-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .input-area {
-            width: 420px;
-            margin: 0 auto;
+
+        .message-content {
+            margin-bottom: 10px;
+        }
+
+        .music-controls {
             display: flex;
-            gap: 10px;
-            padding: 18px 0 0 0;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
-        #userInput {
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .audio-player {
             flex: 1;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: none;
-            background: #23283a;
-            color: #fff;
-            font-size: 1.08rem;
+            max-width: 200px;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            height: 35px;
+            border-radius: 20px;
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
             outline: none;
-            box-shadow: 0 2px 8px #0002;
+            transition: border-color 0.3s;
         }
-        #userInput::placeholder {
-            color: #8a92b2;
+
+        .chat-input input:focus {
+            border-color: #667eea;
         }
-        #sendBtn {
-            padding: 12px 22px;
-            border-radius: 12px;
+
+        .chat-input input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .send-btn {
+            padding: 15px 25px;
+            border-radius: 25px;
             border: none;
-            background: linear-gradient(90deg, #4f8cff 60%, #6a5cff 100%);
-            color: #fff;
-            font-size: 1.08rem;
-            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        #sendBtn:hover {
-            background: linear-gradient(90deg, #6a5cff 60%, #4f8cff 100%);
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
         }
-        @media (max-width: 500px) {
-            #chatBox, .input-area { width: 98vw; }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .suggestion {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .suggestion:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .style-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .style-classical { background: #ffd700; color: #000; }
+        .style-jazz { background: #ff6b6b; color: white; }
+        .style-pop { background: #4ecdc4; color: white; }
+        .style-ambient { background: #45b7d1; color: white; }
+        .style-rock { background: #96ceb4; color: white; }
+        .style-default { background: #dda0dd; color: white; }
+
+        .error {
+            background: rgba(255, 107, 107, 0.2) !important;
+            border-color: #ff6b6b !important;
+        }
+
+        .success {
+            background: rgba(76, 175, 80, 0.2) !important;
+            border-color: #4caf50 !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header .title {
+                font-size: 2rem;
+            }
+            
+            .chat-messages {
+                height: 300px;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .send-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="container">
     <div class="header">
-        <span class="icon">&#127925;</span>
-        <span class="title">Music Generation Chatbot</span>
+            <span class="icon">🎵</span>
+            <h1 class="title">AI Music Generation</h1>
+            <p class="subtitle">Create unique music with artificial intelligence</p>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>🎼 Music Composer Bot</h2>
+                <p>Describe the music you want to create</p>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-bubble">
+                        <div class="message-content">
+                            👋 Hello! I'm your AI music composer. Tell me what kind of music you'd like me to create for you!
+                        </div>
+                        <div class="suggestions">
+                            <div class="suggestion" onclick="sendSuggestion('Create a peaceful classical piano piece')">Classical Piano</div>
+                            <div class="suggestion" onclick="sendSuggestion('Generate an upbeat jazz composition')">Jazz Swing</div>
+                            <div class="suggestion" onclick="sendSuggestion('Make a calming ambient melody')">Ambient</div>
+                            <div class="suggestion" onclick="sendSuggestion('Create energetic rock music')">Rock</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="userInput" 
+                        placeholder="Describe your music: 'peaceful classical piano', 'energetic jazz', etc..." 
+                        onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendMessage();}"
+                    >
+                    <button id="sendBtn" onclick="sendMessage()">
+                        <span>🎵</span>
+                        <span>Generate</span>
+                    </button>
+                </div>
+            </div>
     </div>
-    <div id="chatBox"></div>
-    <div class="input-area">
-        <input id="userInput" type="text" placeholder="Type your music prompt..." onkeydown="if(event.key==='Enter'){sendMsg();}">
-        <button id="sendBtn" onclick="sendMsg()">Send</button>
     </div>
+
     <script>
-    async function sendMsg() {
-        const input = document.getElementById('userInput');
-        const chatBox = document.getElementById('chatBox');
-        const text = input.value.trim();
-        if (!text) return;
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        let isProcessing = false;
+
+        function sendSuggestion(text) {
+            userInput.value = text;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text || isProcessing) return;
+
+            isProcessing = true;
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span>⏳</span><span>Generating...</span>';
 
         // Add user message
-        const userMsg = document.createElement('div');
-        userMsg.className = 'msg user';
-        userMsg.innerHTML = `<div class="bubble">${text}</div>`;
-        chatBox.appendChild(userMsg);
-        input.value = '';
-        chatBox.scrollTop = chatBox.scrollHeight;
+            addMessage(text, 'user');
 
-        // Add bot loading message
-        const botMsg = document.createElement('div');
-        botMsg.className = 'msg bot';
-        const botBubble = document.createElement('div');
-        botBubble.className = 'bubble';
-        botBubble.innerText = '...';
-        botMsg.appendChild(botBubble);
-        chatBox.appendChild(botMsg);
-        chatBox.scrollTop = chatBox.scrollHeight;
+            // Clear input
+            userInput.value = '';
 
-        try {
-            const res = await fetch('http://127.0.0.1:5010/generate_music', {
+            // Add loading message
+            const loadingId = addLoadingMessage();
+
+            try {
+                const response = await fetch('http://127.0.0.1:5010/generate_music', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: text })
             });
-            const data = await res.json();
-            botBubble.innerText = data.result;
-            // Add MIDI download/play link if present
-            if (data.midi_url) {
-                const midiUrl = 'http://127.0.0.1:5010/download_midi';
-                const linkDiv = document.createElement('div');
-                linkDiv.style.margin = '8px 0 0 0';
-                linkDiv.innerHTML = `<a href="${midiUrl}" download style="color:#7cf;">⬇️ Download MIDI</a> &nbsp; <audio controls style="vertical-align:middle;max-width:180px;" src="${midiUrl}"></audio>`;
-                botBubble.appendChild(linkDiv);
+
+                const data = await response.json();
+
+                // Remove loading message
+                removeLoadingMessage(loadingId);
+
+                if (response.ok) {
+                    addMusicMessage(data.result, data.style, data.midi_url);
+                } else {
+                    addMessage('Sorry, I encountered an error while generating your music. Please try again.', 'bot', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                removeLoadingMessage(loadingId);
+                addMessage('Sorry, I cannot connect to the music generation server. Please check your connection and try again.', 'bot', 'error');
+            } finally {
+                isProcessing = false;
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<span>🎵</span><span>Generate</span>';
             }
-        } catch (e) {
-            botBubble.innerText = 'Error: Could not get answer.';
         }
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
+
+        function addMessage(text, sender, type = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? '👤' : '🤖';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            if (type) bubble.classList.add(type);
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
+            
+            bubble.appendChild(content);
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addMusicMessage(text, style, midiUrl) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '🤖';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
+            
+            // Add style indicator
+            if (style) {
+                const styleIndicator = document.createElement('div');
+                styleIndicator.className = `style-indicator style-${style}`;
+                styleIndicator.textContent = style.toUpperCase();
+                content.appendChild(styleIndicator);
+            }
+            
+            bubble.appendChild(content);
+            
+            // Add music controls
+            if (midiUrl) {
+                const controls = document.createElement('div');
+                controls.className = 'music-controls';
+                
+                const downloadBtn = document.createElement('a');
+                downloadBtn.href = midiUrl;
+                downloadBtn.download = 'generated_music.mid';
+                downloadBtn.className = 'download-btn';
+                downloadBtn.innerHTML = '⬇️ Download MIDI';
+                
+                const audioPlayer = document.createElement('div');
+                audioPlayer.className = 'audio-player';
+                audioPlayer.innerHTML = `<audio controls src="${midiUrl}"></audio>`;
+                
+                controls.appendChild(downloadBtn);
+                controls.appendChild(audioPlayer);
+                bubble.appendChild(controls);
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addLoadingMessage() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.id = 'loading-' + Date.now();
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '🤖';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble loading';
+            bubble.innerHTML = `
+                Composing your music
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageDiv.id;
+        }
+
+        function removeLoadingMessage(loadingId) {
+            const loadingElement = document.getElementById(loadingId);
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+        }
+
+        // Focus input on load
+        userInput.focus();
     </script>
 </body>
 </html> 

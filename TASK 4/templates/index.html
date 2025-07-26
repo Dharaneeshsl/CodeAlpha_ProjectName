@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection and Tracking</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .video-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .video-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .video-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .video-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .video-feed {
+            width: 100%;
+            height: 500px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .video-feed img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .video-placeholder {
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .video-placeholder .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            color: white;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls-panel h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .control-group input,
+        .control-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            border-color: #667eea;
+        }
+
+        .control-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stats-panel h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-active {
+            background: #4caf50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+
+        .status-inactive {
+            background: #f44336;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .alert-success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+        }
+
+        .alert-error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+
+        .alert-info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            color: #2196f3;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-panel {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .video-feed {
+                height: 300px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Object Detection & Tracking</h1>
+            <p>Real-time object detection and tracking using YOLO and computer vision</p>
+        </div>
+
+        <div class="main-content">
+            <div class="video-container">
+                <div class="video-header">
+                    <h2>📹 Live Video Feed</h2>
+                    <p>Real-time object detection and tracking</p>
+                </div>
+                <div class="video-feed" id="videoFeed">
+                    <div class="video-placeholder">
+                        <div class="icon">📷</div>
+                        <h3>Camera Not Active</h3>
+                        <p>Click "Start Detection" to begin</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-panel">
+                <h2>🎛️ Controls</h2>
+                
+                <div id="alertContainer"></div>
+
+                <div class="control-group">
+                    <label for="videoSource">Video Source</label>
+                    <select id="videoSource">
+                        <option value="0">Webcam (Default)</option>
+                        <option value="1">External Camera</option>
+                        <option value="2">Secondary Camera</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="confidenceThreshold">Confidence Threshold</label>
+                    <input type="range" id="confidenceThreshold" min="0.1" max="1.0" step="0.1" value="0.5">
+                    <div style="text-align: center; margin-top: 5px; font-size: 0.9rem;">
+                        <span id="confidenceValue">0.5</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="nmsThreshold">NMS Threshold</label>
+                    <input type="range" id="nmsThreshold" min="0.1" max="1.0" step="0.1" value="0.4">
+                    <div style="text-align: center; margin-top: 5px; font-size: 0.9rem;">
+                        <span id="nmsValue">0.4</span>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="startBtn" onclick="startDetection()">
+                        🚀 Start Detection
+                    </button>
+                    <button class="btn btn-danger" id="stopBtn" onclick="stopDetection()" disabled>
+                        ⏹️ Stop Detection
+                    </button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="saveFrame()">
+                        📸 Save Frame
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshStats()">
+                        🔄 Refresh Stats
+                    </button>
+                </div>
+
+                <div class="stats-panel">
+                    <h3>📊 Detection Statistics</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">
+                            <span class="status-indicator" id="statusIndicator"></span>
+                            Status
+                        </span>
+                        <span class="stat-value" id="statusValue">Inactive</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">FPS</span>
+                        <span class="stat-value" id="fpsValue">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Objects</span>
+                        <span class="stat-value" id="totalObjectsValue">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Active Objects</span>
+                        <span class="stat-value" id="activeObjectsValue">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Frames Processed</span>
+                        <span class="stat-value" id="frameCountValue">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDetectionActive = false;
+        let statsInterval = null;
+
+        // Initialize controls
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update range value displays
+            document.getElementById('confidenceThreshold').addEventListener('input', function() {
+                document.getElementById('confidenceValue').textContent = this.value;
+            });
+
+            document.getElementById('nmsThreshold').addEventListener('input', function() {
+                document.getElementById('nmsValue').textContent = this.value;
+            });
+
+            // Check health status
+            checkHealth();
+        });
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                updateStatus(data.is_processing, data.camera_initialized);
+                
+                if (data.is_processing) {
+                    startVideoFeed();
+                    startStatsUpdate();
+                }
+            } catch (error) {
+                console.error('Health check failed:', error);
+            }
+        }
+
+        function updateStatus(isProcessing, cameraInitialized) {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusValue = document.getElementById('statusValue');
+            
+            if (isProcessing && cameraInitialized) {
+                statusIndicator.className = 'status-indicator status-active';
+                statusValue.textContent = 'Active';
+                isDetectionActive = true;
+                updateButtonStates();
+            } else {
+                statusIndicator.className = 'status-indicator status-inactive';
+                statusValue.textContent = 'Inactive';
+                isDetectionActive = false;
+                updateButtonStates();
+            }
+        }
+
+        function updateButtonStates() {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            startBtn.disabled = isDetectionActive;
+            stopBtn.disabled = !isDetectionActive;
+        }
+
+        async function startDetection() {
+            try {
+                const source = document.getElementById('videoSource').value;
+                const confidence = parseFloat(document.getElementById('confidenceThreshold').value);
+                const nms = parseFloat(document.getElementById('nmsThreshold').value);
+
+                const response = await fetch('/start_detection', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        source: parseInt(source),
+                        confidence: confidence,
+                        nms: nms
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('Detection started successfully!', 'success');
+                    startVideoFeed();
+                    startStatsUpdate();
+                    updateStatus(true, true);
+                } else {
+                    showAlert(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error starting detection:', error);
+                showAlert('Failed to start detection. Please check your connection.', 'error');
+            }
+        }
+
+        async function stopDetection() {
+            try {
+                const response = await fetch('/stop_detection', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('Detection stopped successfully!', 'info');
+                    stopVideoFeed();
+                    stopStatsUpdate();
+                    updateStatus(false, false);
+                } else {
+                    showAlert(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error stopping detection:', error);
+                showAlert('Failed to stop detection.', 'error');
+            }
+        }
+
+        function startVideoFeed() {
+            const videoFeed = document.getElementById('videoFeed');
+            videoFeed.innerHTML = '<img src="/video_feed" alt="Video Feed" style="width: 100%; height: 100%; object-fit: contain;">';
+        }
+
+        function stopVideoFeed() {
+            const videoFeed = document.getElementById('videoFeed');
+            videoFeed.innerHTML = `
+                <div class="video-placeholder">
+                    <div class="icon">📷</div>
+                    <h3>Camera Not Active</h3>
+                    <p>Click "Start Detection" to begin</p>
+                </div>
+            `;
+        }
+
+        function startStatsUpdate() {
+            if (statsInterval) {
+                clearInterval(statsInterval);
+            }
+            statsInterval = setInterval(updateStats, 1000);
+        }
+
+        function stopStatsUpdate() {
+            if (statsInterval) {
+                clearInterval(statsInterval);
+                statsInterval = null;
+            }
+        }
+
+        async function updateStats() {
+            try {
+                const response = await fetch('/get_stats');
+                const data = await response.json();
+                
+                document.getElementById('fpsValue').textContent = data.fps.toFixed(1);
+                document.getElementById('totalObjectsValue').textContent = data.total_objects;
+                document.getElementById('activeObjectsValue').textContent = data.current_objects;
+                document.getElementById('frameCountValue').textContent = data.frame_count;
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        async function saveFrame() {
+            try {
+                const response = await fetch('/save_frame', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert(`Frame saved as ${data.filename}`, 'success');
+                } else {
+                    showAlert(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error saving frame:', error);
+                showAlert('Failed to save frame.', 'error');
+            }
+        }
+
+        function refreshStats() {
+            updateStats();
+            showAlert('Statistics refreshed!', 'info');
+        }
+    </script>
+</body>
+</html> 

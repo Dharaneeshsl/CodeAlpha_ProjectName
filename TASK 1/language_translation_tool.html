@@ -69,6 +69,27 @@
             font-size: 1.08rem;
             word-break: break-word;
         }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4f8cff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            background: #fee2e2 !important;
+            color: #dc2626 !important;
+        }
+        .success {
+            background: #dcfce7 !important;
+            color: #16a34a !important;
+        }
     </style>
 </head>
 <body>
@@ -76,6 +97,7 @@
         <h1>Language Translation Tool</h1>
         <label for="source">Source Language:</label>
         <select id="source">
+            <option value="auto">Auto-detect</option>
             <option value="en">English</option>
             <option value="es">Spanish</option>
             <option value="fr">French</option>
@@ -115,26 +137,91 @@
             const source = document.getElementById('source').value;
             const target = document.getElementById('target').value;
             const resultDiv = document.getElementById('result');
+            const translateBtn = document.getElementById('translateBtn');
+            
+            // Clear previous styling
+            resultDiv.className = '';
+            
             if (!q.trim()) {
                 resultDiv.innerText = 'Please enter text to translate.';
+                resultDiv.classList.add('error');
                 return;
             }
-            resultDiv.innerText = 'Translating...';
+            
+            // Show loading state
+            resultDiv.innerHTML = '<span class="loading"></span> Translating...';
+            translateBtn.disabled = true;
+            translateBtn.textContent = 'Translating...';
+            
             try {
                 // Unofficial Google Translate endpoint
                 const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(q)}`;
                 const res = await fetch(url);
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
                 const data = await res.json();
                 if (data && data[0] && data[0][0] && data[0][0][0]) {
                     resultDiv.innerText = data[0][0][0];
+                    resultDiv.classList.add('success');
                 } else {
-                    resultDiv.innerText = 'Translation failed.';
+                    throw new Error('Invalid response format');
                 }
             } catch (e) {
-                resultDiv.innerText = 'Request failed.';
+                console.error('Translation error:', e);
+                resultDiv.innerText = 'Translation failed. Please try again.';
+                resultDiv.classList.add('error');
+            } finally {
+                // Reset button state
+                translateBtn.disabled = false;
+                translateBtn.textContent = 'Translate';
             }
         }
+        
+        // Add event listeners
         document.getElementById('translateBtn').addEventListener('click', translate);
+        
+        // Allow Enter key to trigger translation
+        document.getElementById('text').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                translate();
+            }
+        });
+        
+        // Auto-detect language feature
+        async function detectLanguage(text) {
+            if (!text.trim()) return null;
+            
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                return data[2]; // Language detection result
+            } catch (e) {
+                console.error('Language detection failed:', e);
+                return null;
+            }
+        }
+        
+        // Auto-detect language when text changes
+        let detectTimeout;
+        document.getElementById('text').addEventListener('input', function() {
+            clearTimeout(detectTimeout);
+            detectTimeout = setTimeout(async () => {
+                const text = this.value;
+                if (text.trim().length > 10) {
+                    const detectedLang = await detectLanguage(text);
+                    if (detectedLang && detectedLang !== 'auto') {
+                        const sourceSelect = document.getElementById('source');
+                        if (sourceSelect.value === 'auto') {
+                            sourceSelect.value = detectedLang;
+                        }
+                    }
+                }
+            }, 1000);
+        });
     </script>
 </body>
 </html> 
