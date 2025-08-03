@@ -19,12 +19,12 @@ def translate():
     target = data['target']
     
     try:
-    payload = {
-            'q': text,
-            'source': source,
-            'target': target,
-        'format': 'text'
-    }
+        payload = {
+                'q': text,
+                'source': source,
+                'target': target,
+            'format': 'text'
+        }
         res = requests.post(LIBRETRANSLATE_URL, json=payload, timeout=10)
         res.raise_for_status()
         result = res.json()

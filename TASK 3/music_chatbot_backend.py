@@ -65,9 +65,9 @@ def generate_music():
                 'error': 'Invalid content type. Please send JSON with a "prompt" field.'
             }), 400
         
-    data = request.get_json()
-    prompt = data.get('prompt', '')
-    
+        data = request.get_json()
+        prompt = data.get('prompt', '')
+        
         is_valid, validation_result = validate_prompt(prompt)
         if not is_valid:
             return jsonify({
@@ -90,8 +90,8 @@ def generate_music():
         
             if result.returncode == 0:
                 msg = f"🎵 Generated {style} music based on your prompt: '{prompt}'. The composition features {style_params['length']} notes with a {style} style."
-        return jsonify({
-            'result': msg,
+                return jsonify({
+                    'result': msg,
                     'midi_url': f'http://127.0.0.1:{app.config["PORT"]}/download_midi',
                     'style': style,
                     'length': style_params['length'],
@@ -121,7 +121,7 @@ def download_midi():
         if not os.path.exists(os.path.join(TASK3_DIR, MIDI_FILENAME)):
             return jsonify({'error': 'No music file available. Please generate music first.'}), 404
         
-    return send_from_directory(TASK3_DIR, MIDI_FILENAME, as_attachment=True)
+        return send_from_directory(TASK3_DIR, MIDI_FILENAME, as_attachment=True)
     except Exception as e:
         logger.error(f"Error downloading MIDI: {e}")
         return jsonify({'error': 'Error downloading file'}), 500
